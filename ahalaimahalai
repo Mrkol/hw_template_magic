@@ -1,0 +1,46 @@
+#include <utility>
+
+template<int head, int... tail>
+static constexpr int Xor =
+	head ^ Xor<tail...>;
+
+template<int head>
+static constexpr int Xor<head> =
+	head;
+
+template<int allxored>
+struct Capture
+{
+	template<int... tail>
+	struct Find
+	{
+		static constexpr int size = 0;
+		static constexpr int index = 0;
+	};
+
+	template<int head, int... tail>
+	struct Find<head, tail...>
+	{
+		using Next = Find<tail...>;
+		static constexpr bool matched = (head ^ allxored) < head;
+		static constexpr int size = 
+			matched * head + !matched * Next::size;
+		static constexpr int index =
+			!matched * (Next::index + 1);
+	};
+};
+	
+
+template<int... tail>
+struct AhalaiMahalai
+{
+	static constexpr int xored = Xor<tail...>;
+	using found = typename Capture<xored>::template Find<tail...>;
+
+	static constexpr int who = 
+		(xored == 0) + 1;
+	static constexpr int whence = 
+		(found::index + 1) * (xored > 0);
+	static constexpr int how = 
+		(found::size - (found::size ^ xored)) * (xored > 0);
+};
